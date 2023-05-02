@@ -46,7 +46,7 @@ export const handler = async (event: APIGatewayRequestAuthorizerEvent, _: any, c
   }
 
   logger.log("Getting auth header.")
-  const authHeader = event.headers?.authorization
+  const authHeader = event.headers?.authorization ?? event.headers?.Authorization;
   if (!authHeader) {
     logger.log("Didn't find auth header.")
 

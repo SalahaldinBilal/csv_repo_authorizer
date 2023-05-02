@@ -86,9 +86,8 @@ export const handler = async (event: APIGatewayRequestAuthorizerEvent, _: any, c
     if (userGroup.group === 'all' || userGroup.path[requestMethod]?.includes(requestPath)) {
       logger.log("Found matching config");
       callback(null, generateAllow('me', arn));
+      return;
     }
-
-    return;
   }
 
   callback('Unauthorized');

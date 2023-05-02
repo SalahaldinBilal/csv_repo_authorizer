@@ -13,7 +13,7 @@ export const handler = async (event: APIGatewayRequestAuthorizerEvent, _: any, c
       path: {
         'POST': ["/csv"]
       },
-      group: 'delete-group'
+      group: 'add-group'
     },
     {
       path: {
@@ -83,7 +83,7 @@ export const handler = async (event: APIGatewayRequestAuthorizerEvent, _: any, c
 
   for (const userGroup of mapGroupsToPaths) {
     logger.log("Checking config: ", JSON.stringify(userGroup, null, 2));
-    if (userGroup.group === 'all' || userGroup.path[requestMethod]?.includes(requestPath)) {
+    if (userGroup.path[requestMethod]?.includes(requestPath) && (userGroup.group === 'all' || userGroups.includes(userGroup.group))) {
       logger.log("Found matching config");
       callback(null, generateAllow('me', arn));
       return;

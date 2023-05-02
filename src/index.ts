@@ -31,7 +31,7 @@ export const handler = async (event: APIGatewayRequestAuthorizerEvent, _: any, c
 
   console.log(JSON.stringify(event, null, 2));
 
-  const requestPath = event.requestContext.path;
+  const requestPath = event.requestContext.resourcePath;
   const requestMethod = event.requestContext.httpMethod as "GET" | "DELETE" | "POST";
   const arn = event.methodArn;
 

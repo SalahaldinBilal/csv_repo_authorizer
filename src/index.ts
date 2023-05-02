@@ -4,6 +4,7 @@ import { generateAllow, generateDeny } from './helpers';
 import type { CsvFile } from './types';
 import { CognitoJwtVerifier } from 'aws-jwt-verify';
 import { CognitoIdTokenPayload } from 'aws-jwt-verify/jwt-model';
+import { Logger } from './logger';
 dotenv.config();
 
 export const handler = async (event: APIGatewayRequestAuthorizerEvent, _: any, callback: Callback<APIGatewayAuthorizerResult>) => {
@@ -34,16 +35,20 @@ export const handler = async (event: APIGatewayRequestAuthorizerEvent, _: any, c
   const requestMethod = event.requestContext.httpMethod as "GET" | "DELETE" | "POST";
   const arn = event.methodArn;
 
+  const logger = new Logger(`${requestMethod} ${requestPath}`)
+
+  logger.log("Validating path.")
   if (!requestPath.startsWith('/csv')) {
-    console.log('Invalid path');
+    logger.log("Invalid path.")
 
     callback(null, generateDeny('me', arn));
     return;
   }
 
+  logger.log("Getting auth header.")
   const authHeader = event.headers?.authorization
   if (!authHeader) {
-    console.log('No auth header');
+    logger.log("Didn't find auth header.")
 
     callback(null, generateDeny('me', arn));
     return;
@@ -51,6 +56,7 @@ export const handler = async (event: APIGatewayRequestAuthorizerEvent, _: any, c
 
   const token = authHeader
 
+  logger.log("Creating verifier.")
   const verifier = CognitoJwtVerifier.create({
     userPoolId: process.env.USER_POOL_ID,
     tokenUse: 'id',
@@ -60,17 +66,20 @@ export const handler = async (event: APIGatewayRequestAuthorizerEvent, _: any, c
   let payload: CognitoIdTokenPayload;
   try {
     payload = await verifier.verify(token);
-    console.log('Token is valid. Payload:', payload);
+    logger.log('Token is valid. Payload:', payload);
   } catch {
-    console.log('Token not valid!');
+    logger.log('Token is invalid');
 
     callback(null, generateDeny('me', arn));
     return;
   }
 
   // header has a 'Bearer TOKEN' format
+  logger.log("Finding matching path config")
   const matchingPathConfig = mapGroupsToPaths.find((config) => config.path[requestMethod]?.includes(requestPath))!;
+  logger.log("Path config: ", JSON.stringify(matchingPathConfig, null, 2))
   const userGroups = payload['cognito:groups'] ?? [];
+  logger.log("User groups: ", userGroups)
 
   if (matchingPathConfig.group === 'all' || userGroups.includes(matchingPathConfig.group)) {
     callback(null, generateAllow('me', arn));

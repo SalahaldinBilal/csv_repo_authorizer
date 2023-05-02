@@ -76,13 +76,18 @@ export const handler = async (event: APIGatewayRequestAuthorizerEvent, _: any, c
 
   // header has a 'Bearer TOKEN' format
   logger.log("Finding matching path config")
-  const matchingPathConfig = mapGroupsToPaths.find((config) => config.path[requestMethod]?.includes(requestPath))!;
-  logger.log("Path config: ", JSON.stringify(matchingPathConfig, null, 2))
+  // const matchingPathConfig = mapGroupsToPaths.find((config) => config.path[requestMethod]?.includes(requestPath))!;
+  // logger.log("Path config: ", JSON.stringify(matchingPathConfig, null, 2))
   const userGroups = payload['cognito:groups'] ?? [];
   logger.log("User groups: ", userGroups)
 
-  if (matchingPathConfig.group === 'all' || userGroups.includes(matchingPathConfig.group)) {
-    callback(null, generateAllow('me', arn));
+  for (const userGroup of mapGroupsToPaths) {
+    logger.log("Checking config: ", JSON.stringify(userGroup, null, 2));
+    if (userGroup.group === 'all' || userGroup.path[requestMethod]?.includes(requestPath)) {
+      logger.log("Found matching config");
+      callback(null, generateAllow('me', arn));
+    }
+
     return;
   }
 

@@ -67,8 +67,8 @@ export const handler = async (event: APIGatewayRequestAuthorizerEvent, _: any, c
   try {
     payload = await verifier.verify(token);
     logger.log('Token is valid. Payload:', payload);
-  } catch {
-    logger.log('Token is invalid');
+  } catch (e) {
+    logger.log('Token is invalid: ', e);
 
     callback(null, generateDeny('me', arn));
     return;

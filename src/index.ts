@@ -23,7 +23,7 @@ export const handler = async (event: APIGatewayRequestAuthorizerEvent, _: any, c
     },
     {
       path: {
-        'GET': ['/csv', '/csv/{name}'],
+        'GET': ['/csv', '/csv/{name}', '/json/{name}'],
       },
       group: 'all'
     }
@@ -38,7 +38,7 @@ export const handler = async (event: APIGatewayRequestAuthorizerEvent, _: any, c
   const logger = new Logger(`${requestMethod} ${requestPath}`)
 
   logger.log("Validating path.")
-  if (!requestPath.startsWith('/csv')) {
+  if (!requestPath.startsWith('/csv') && !requestPath.startsWith('/json')) {
     logger.log("Invalid path.")
 
     callback(null, generateDeny('me', arn));
